@@ -357,7 +357,8 @@
             "Play Media",
             "Remove EXIF",
             "Extract EXIF",
-            "Split Colour Channels"
+            "Split Colour Channels",
+	    "Resize Image"
         ]
     },
     {
