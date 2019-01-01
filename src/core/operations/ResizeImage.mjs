@@ -8,6 +8,7 @@ import Operation from "../Operation";
 import OperationError from "../errors/OperationError";
 import Magic from "../lib/Magic";
 import { toBase64 } from "../lib/Base64";
+import { getImageDimensions, resizeImage } from "../lib/ImageProcessing";
 
 /**
  * Resize Image operation
@@ -22,45 +23,63 @@ class ResizeImage extends Operation {
 
         this.name = "Resize Image";
         this.module = "Image";
-        this.description = "Resize an image.";
+        this.description = "Resize an image.<br>A value of 0 for the Width or Height will auto scale that dimension";
         this.infoURL = "";
         this.inputType = "byteArray";
         this.outputType = "byteArray";
         this.presentType = "html";
         this.args = [
             {
-                name: "Scale",
-                type: "option",
-                value: ["Height", "Width"]
+                name: "Width",
+                type: "number",
+                value: 0,
+                hint: "0 = auto scale"
             },
             {
-                name: "Value",
+                name: "Height",
                 type: "number",
-                value: 100
+                value: 0,
+                hint: "0 = auto scale"
+
             },
             {
                 name: "Units",
                 type: "option",
-                value: ["pixels", "Percentage"]
+                value: ["Pixels", "Percentage"]
             }
         ];
     }
 
     /**
-     * @param {File} input
+     * @param {byteArray} input
      * @param {Object[]} args
      * @returns {File}
      */
-    run(input, args) {
-        // const [firstArg, secondArg] = args;
+    async run(input, args) {
+        if (!input.length) return [];
         const type = Magic.magicFileType(input);
-
-        // Make sure that the input is an image
-        if (type && type.mime.indexOf("image") !== 0) {
-            throw new OperationError("Not image");
-
+        if (type  === null || type.mime.indexOf("image") !== 0) {
+            throw new OperationError("Invalid file type.");
         }
-        return input;
+        let width = args[0], height = args[1];
+        const units = args[2];
+
+        if (width < 0 || height < 0){
+            throw new OperationError("Width and height must be greater than or equal to 0");
+        }
+
+        const dimensions = await getImageDimensions(input);
+
+        if (units === "Percentage"){
+            width = width * (dimensions.width / 100);
+            height = height * (dimensions.height / 100);
+        }
+        if (width === 0) width = undefined;
+        if (height === 0) height = undefined;
+        if (width === undefined && height === undefined) width = dimensions.width;
+        // Make sure that the input is an image
+        const image = await resizeImage(input, width, height);
+        return image;
 
     }
 
