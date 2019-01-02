@@ -53,23 +53,23 @@ class ResizeImage extends Operation {
     /**
      * @param {byteArray} input
      * @param {Object[]} args
-     * @returns {File}
+     * @returns {ByteArray}
      */
     async run(input, args) {
+        // validate input as an image.
         if (!input.length) return [];
         const type = Magic.magicFileType(input);
         if (type  === null || type.mime.indexOf("image") !== 0) {
             throw new OperationError("Invalid file type.");
         }
+        // validate width and height.
         let width = args[0], height = args[1];
-        const units = args[2];
-
         if (width < 0 || height < 0){
             throw new OperationError("Width and height must be greater than or equal to 0");
         }
-
+        // compute width and heigh based on units type.
+        const units = args[2];
         const dimensions = await getImageDimensions(input);
-
         if (units === "Percentage"){
             width = width * (dimensions.width / 100);
             height = height * (dimensions.height / 100);
@@ -77,7 +77,8 @@ class ResizeImage extends Operation {
         if (width === 0) width = undefined;
         if (height === 0) height = undefined;
         if (width === undefined && height === undefined) width = dimensions.width;
-        // Make sure that the input is an image
+        // resize image
+        // resizeImage retures a byteArray
         const image = await resizeImage(input, width, height);
         return image;
 

@@ -32,7 +32,7 @@ export async function resizeImage(input, width=jimp.AUTO, height=jimp.AUTO){
  * get image dimensions
  *
  * @param  {byteArray} input
- * @return {object}
+ * @return {object} - with the properties .width .height
  */
 export async function getImageDimensions(input){
     const dimensions = {};
